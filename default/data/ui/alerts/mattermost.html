@@ -1,0 +1,23 @@
+<form class="form-horizontal form-complex">
+    <div class="control-group">
+        <label class="control-label" for="mattermost_url">Integration URL</label>
+
+        <div class="controls">
+            <input type="text" name="action.mattermost.param.url" id="mattermost_url" />
+            <span class="help-block">Enter the full URL of Mattermost integration</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="mattermost_message">Message</label>
+
+        <div class="controls">
+            <textarea name="action.mattermost.param.message" id="mattermost_message" style="height: 120px;"></textarea>
+            <span class="help-block">
+                Enter the chat message to send to the Mattermost room.
+                The message can include tokens that insert text based on the results of the search.
+                <a href="{{SPLUNKWEB_URL_PREFIX}}/help?location=learnmore.alert.action.tokens" target="_blank"
+                   title="Splunk help">Learn More <i class="icon-external"></i></a>
+            </span>
+        </div>
+    </div>
+</form>

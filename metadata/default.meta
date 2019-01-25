@@ -1,0 +1,12 @@
+[]
+access = read : [ * ], write : [ admin ]
+export = none
+
+[alert_actions/mattermost]
+export = system
+
+[alerts]
+export = system
+
+[tags]
+export = system
