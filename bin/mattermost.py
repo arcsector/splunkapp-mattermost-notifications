@@ -14,7 +14,8 @@ def create_markdown_string(value_list):
 def create_markdown_separator(value_list):
     markdown_string = "|"
     for value in value_list:
-        markdown_string = '-|'
+        markdown_string += '-|'
+    markdown_string += '\n'
     print >> sys.stderr, "DEBUG Markdown header length is %s" % str(value_list)
     return markdown_string
 
@@ -98,9 +99,9 @@ def table_broker(payload):
             header_line = next(results)
             data = list(results)
             results_string = create_markdown_string(header_line)
-            results_string = results_string + create_markdown_separator(header_line)
-            results_string = [create_markdown_string(line) for line in data]
-
+            results_string += create_markdown_separator(header_line)
+            results_string += [create_markdown_string(line) for line in data][0]
+	print >> sys.stderr, "INFO Results markdown string: %s" % results_string
         # Decide whether to send this info via table or attachment
         if table == "table":
             return_value = send_notification(msg, url)
