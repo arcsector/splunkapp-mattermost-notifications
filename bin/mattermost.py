@@ -183,6 +183,7 @@ def table_broker(payload):
 
     else:
         print >> sys.stderr, "WARN Results table not found"
+        return_value = send_notification(msg, url)
     return return_value
 
 if __name__ == "__main__":
