@@ -124,7 +124,7 @@ def table_broker(payload):
             author_name = owner
             print >> sys.stderr, "DEBUG Search owner: %s" % owner
             app = payload.get('app')
-            print >> sys.stderr, "DEBUG Search app context: %s" % App
+            print >> sys.stderr, "DEBUG Search app context: %s" % app
             count = payload.get('count')
             print >> sys.stderr, "DEBUG Search result count: %s" % count
             trigger_time = payload.get('trigger_time')
