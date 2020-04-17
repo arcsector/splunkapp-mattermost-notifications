@@ -8,6 +8,16 @@ import os
 
 from fnmatch import fnmatch
 
+def sanitize_results(header_line, data):
+    index_to_delete = []
+    for header in header_line.copy():
+        if '__mv_' in header or header == 'mvtime':
+            index_to_delete.append(header_line.index(header))
+            header_line.remove(header)
+    for item in data.copy():
+        data[data.index(item)] = list(set(data[data.index(item)]) - set([item.pop(index) for index in index_to_delete]))
+    return header_line, data
+
 def create_markdown_string(value_list):
     return '|' + '|'.join(value_list) + '|\n'
 
@@ -98,6 +108,7 @@ def table_broker(payload):
             results = csv.reader(results_file)
             header_line = next(results)
             data = list(results)
+            header_line, data = sanitize_results(header_line, data)
             results_string = create_markdown_string(header_line)
             results_string += create_markdown_separator(header_line)
             results_string += [create_markdown_string(line) for line in data][0]
