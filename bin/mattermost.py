@@ -1,16 +1,23 @@
 import sys
 import json
 import urllib2
+import gzip
+import csv
 
 from fnmatch import fnmatch
 
+def create_markdown_string(value_list):
+    return '|' + '|'.join(value_list) + '|\n'
 
-def send_notification(payload):
-    settings = payload.get('configuration')
-    print >> sys.stderr, "DEBUG Sending message with settings %s" % settings
-    url = settings.get('url')
+def create_markdown_separator(value_list):
+    markdown_string = "|"
+    for value in value_list:
+        markdown_string = '-|'
+    print >> sys.stderr "DEBUG Markdown header length is %s" %s str(value_list)
+    return markdown_string
+
+def send_notification(msg, url):
     print >> sys.stderr, "INFO Sending message to Mattermost url %s" % (url)
-    msg = settings.get('message')
     msg_limit = 10000
     if len(msg) > msg_limit:
         print >> sys.stderr, "WARN Message is longer than limit of %d characters and will be truncated" % msg_limit
@@ -35,11 +42,39 @@ def send_notification(payload):
         print >> sys.stderr, "ERROR Server response: %s" % e.read()
         return False
 
+def table_broker(payload):
+    settings = payload.get('configuration')
+    print >> sys.stderr, "DEBUG Sending message with settings %s" % settings
+    table = settings.get('table')
+    msg = settings.get('message')
+    url = settings.get('url')
+    return_value = send_notification(msg, url)
+    if table:
+        results_file_location = settings.get('results_file')
+        print >> sys.stderr, "INFO Results table at %s" % results_file_location
+        with gzip.open(results_file_location, 'rb') as results_file:
+            results = csv.reader(results_file)
+            header_line = next(results)
+            data = list(results)
+            results_string = create_markdown_string(header_line)
+            results_string = results_string + create_markdown_separator(header_line)
+            results_string = [create_markdown_string(line) for line in data]
+            table_return_value = send_notification(results_string, url)
+            if not success:
+                print >> sys.stderr, "FATAL Failed trying to send Mattermost table"
+                sys.exit(2)
+            else:
+                print >> sys.stderr, "INFO Mattermost table successfully sent"
+
+    return return_value
 
 if __name__ == "__main__":
+    counter = 0
+    for i in sys.argv:
+        print >> sys.stderr, "INFO arg %s: %s" % (str(counter), str(i))
     if len(sys.argv) > 1 and sys.argv[1] == "--execute":
         payload = json.loads(sys.stdin.read())
-        success = send_notification(payload)
+        success = table_broker(payload)
         if not success:
             print >> sys.stderr, "FATAL Failed trying to send Mattermost notification"
             sys.exit(2)
