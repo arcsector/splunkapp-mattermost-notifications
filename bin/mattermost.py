@@ -103,7 +103,7 @@ def table_broker(payload):
         results_file_location = payload.get('results_file')
         print >> sys.stderr, "INFO Results at %s" % results_file_location
 
-	data = []
+        data = []
         results_string = ""
         with gzip.open(results_file_location, 'rb') as results_file:
             results = csv.reader(results_file)
@@ -113,7 +113,7 @@ def table_broker(payload):
             results_string = create_markdown_string(header_line)
             results_string += create_markdown_separator(header_line)
             results_string += ''.join([create_markdown_string(line) for line in data])
-	print >> sys.stderr, "DEBUG Results markdown string: %s" % results_string
+        print >> sys.stderr, "DEBUG Results markdown string: %s" % results_string
         # Decide whether to send this info via table or attachment
         if table == "table":
             return_value = send_notification(msg, url)
