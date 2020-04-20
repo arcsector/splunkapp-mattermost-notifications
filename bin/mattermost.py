@@ -144,6 +144,8 @@ def table_broker(payload):
             data = temp.read().split('\n')
             results_string = create_markdown_string(data, markdown_separator)
 
+        os.remove('temp.csv')
+
         print >> sys.stderr, "INFO Results markdown string: %s" % results_string
         # Decide whether to send this info via table or attachment
         if table == "table":
