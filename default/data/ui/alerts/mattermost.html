@@ -20,20 +20,11 @@
             </span>
         </div>
     </div>
-    <div class="control-group">
-        <label class="control-label" for="mattermost_results_table">Send Results Table</label>
-
-        <div class="controls">
-            <input type="radio" name="action.mattermost.param.table" id="mattermost_results_table" value="table" />
-            <span class="help-block">Sends results in a markdown table in a separate message to mattermost. Limited to 10,000 characters.</span>
-        </div>
-    </div>
-    <div class="control-group">
-        <label class="control-label" for="mattermost_results_attach">Send Results Attachment</label>
-
-        <div class="controls">
-            <input type="radio" name="action.mattermost.param.table" id="mattermost_results_attach" value="attach" />
-            <span class="help-block">Sends results in an attachment in the same message to mattermost.</span>
-        </div>
+    <splunk-control-group label="Send Results">
+        <splunk-select name="action.mattermost.param.table">
+            <option value="none">None</option>
+            <option value="table">Table</option>
+            <option value="attach">Attachment</option>
+        </splunk-select>
     </div>
 </form>
