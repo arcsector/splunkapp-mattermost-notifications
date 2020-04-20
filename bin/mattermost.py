@@ -30,7 +30,7 @@ def create_markdown_string(str_list, separator):
         str_list = str_list[:-1]
     markdown_list = ['|' + i + '|' for i in str_list]
     markdown_list_separator = markdown_list.insert(1, separator)
-    return ''.join(dict_list)
+    return ''.join(markdown_list_separator)
 
 def create_markdown_separator(value_list):
     markdown_string = "|"
