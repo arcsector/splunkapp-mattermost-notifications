@@ -15,7 +15,7 @@ def sanitize_results(header_line, data):
             index_to_delete.append(header_line.index(header))
             header_line.remove(header)
     for item in data[:]:
-        data[data.index(item)] = list(set(data[data.index(item)]) - set([item.pop(index) for index in index_to_delete]))
+        data[data.index(item)] = set(data[data.index(item)]) - set([item.pop(index) for index in index_to_delete])
     return header_line, data
 
 def create_markdown_string(value_list):
@@ -180,6 +180,9 @@ def table_broker(payload):
             )
             
             return_value = send_notification(msg, url, attachment_dict)
+        else:
+            print >> sys.stderr, "INFO Results table request had unexpected value %s" % table
+            return_value = send_notification(msg, url)
 
     else:
         print >> sys.stderr, "INFO Results table request not found"
