@@ -8,18 +8,29 @@ import os
 
 from fnmatch import fnmatch
 
-def sanitize_results(header_line, data):
-    index_to_delete = []
-    for header in header_line[:]:
-        if '__mv_' in header or header == 'mvtime':
-            index_to_delete.append(header_line.index(header))
-            header_line.remove(header)
-    for item in data[:]:
-        data[data.index(item)] = set(data[data.index(item)]) - set([item.pop(index) for index in index_to_delete])
-    return header_line, data
+# Create Markdown dialect for ligning up csv
+csv.register_dialect("markdown", delimiter='|', escapechar='\\', quoting=csv.QUOTE_NONE, lineterminator='\n')
 
-def create_markdown_string(value_list):
-    return '|' + '|'.join(value_list) + '|\n'
+def delete_key(key, dic):
+    del dic[key]
+    return dic
+
+def sanitize_results(data):
+    header_to_delete = []
+    for v in data[0].keys():
+        if '__mv_' in v:
+            header_to_delete.append(v)
+    
+    for item in header_to_delete:
+        data = [delete_key(item, dic) for dic in data]
+    return data
+
+def create_markdown_string(str_list, separator):
+    if str_list[-1] == '':
+        str_list = str_list[:-1]
+    markdown_list = ['|' + i + '|' for i in str_list]
+    markdown_list_separator = markdown_list.insert(1, separator)
+    return ''.join(dict_list)
 
 def create_markdown_separator(value_list):
     markdown_string = "|"
@@ -103,17 +114,24 @@ def table_broker(payload):
         results_file_location = payload.get('results_file')
         print >> sys.stderr, "INFO Results at %s" % results_file_location
 
+        header_line = []
         data = []
         results_string = ""
         with gzip.open(results_file_location, 'rb') as results_file:
-            results = csv.reader(results_file)
-            header_line = next(results)
-            data = list(results)
-            header_line, data = sanitize_results(header_line, data)
-            results_string = create_markdown_string(header_line)
-            results_string += create_markdown_separator(header_line)
-            results_string += ''.join([create_markdown_string(line) for line in data])
-        print >> sys.stderr, "DEBUG Results markdown string: %s" % results_string
+            results = csv.DictReader(results_file)
+            data = sanitize_results(list(results))
+
+        markdown_separator = create_markdown_separator(data[0].keys())
+        with open('temp.csv', 'w+') as temp:
+            writer = csv.DictWriter(temp, fieldnames=data[0].keys(), dialect="markdown")
+            writer.writeheader()
+            writer.writerows(data)
+        
+        with open('temp.csv', 'r') as temp:
+            data = temp.read().split('\n')
+            results_string = create_markdown_string(data, markdown_separator)
+
+        print >> sys.stderr, "INFO Results markdown string: %s" % results_string
         # Decide whether to send this info via table or attachment
         if table == "table":
             return_value = send_notification(msg, url)
@@ -139,15 +157,6 @@ def table_broker(payload):
             print >> sys.stderr, "DEBUG Search app context: %s" % app
             count = len(data)
             print >> sys.stderr, "DEBUG Search result count: %s" % count
-            #trigger_time = payload.get('trigger_time')
-            #print >> sys.stderr, "DEBUG Trigger time: %s" % trigger_time
-            #trigger_date = payload.get('trigger_date')
-            #print >> sys.stderr, "DEBUG Trigger date: %s" % trigger_date
-            #trigger_epoch = payload.get('trigger_epoch')
-            #print >> sys.stderr, "INFO Trigger epoch: %s" % trigger_epoch
-            #trigger_epoch_value = datetime.datetime.fromtimestamp(float(trigger_epoch))
-            #trigger_epoch_string = trigger_epoch_string.strftime('%Y-%m-%d %H:%M:%S')
-            #print >> sys.stderr, "DEBUG Trigger epoch string: %s" % trigger_epoch_string
             description = payload.get('description')
             print >> sys.stderr, "DEBUG Search description: %s" % description
 
