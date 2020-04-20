@@ -182,7 +182,7 @@ def table_broker(payload):
             return_value = send_notification(msg, url, attachment_dict)
 
     else:
-        print >> sys.stderr, "WARN Results table not found"
+        print >> sys.stderr, "INFO Results table request not found"
         return_value = send_notification(msg, url)
     return return_value
 
