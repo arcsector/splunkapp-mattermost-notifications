@@ -12,31 +12,40 @@ from fnmatch import fnmatch
 csv.register_dialect("markdown", delimiter='|', escapechar='\\', quoting=csv.QUOTE_NONE, lineterminator='\n')
 
 def delete_key(key, dic):
-    del dic[key]
+    if key in dic:
+        del dic[key]
     return dic
 
 def sanitize_results(data):
     header_to_delete = []
-    for v in data[0].keys():
-        if '__mv_' in v:
-            header_to_delete.append(v)
-    
+
+    for item in data:
+        for v in item.keys():
+            if '__mv_' in v or v == 'mvtime':
+                header_to_delete.append(v)
+
     for item in header_to_delete:
         data = [delete_key(item, dic) for dic in data]
     return data
+
+def sanitize_list(field_list):
+    for item in field_list[:]:
+        if '__mv_' in item or item == 'mvtime':
+            field_list.remove(item)
+    return field_list
 
 def create_markdown_string(str_list, separator):
     if str_list[-1] == '':
         str_list = str_list[:-1]
     markdown_list = ['|' + i + '|' for i in str_list]
-    markdown_list_separator = markdown_list.insert(1, separator)
-    return ''.join(markdown_list_separator)
+    markdown_list.insert(1, separator)
+    return '\n'.join(markdown_list)
 
 def create_markdown_separator(value_list):
     markdown_string = "|"
     for value in value_list:
         markdown_string += '-|'
-    markdown_string += '\n'
+    #markdown_string += '\n'
     print >> sys.stderr, "DEBUG Markdown header length is %s" % str(value_list)
     return markdown_string
 
@@ -116,14 +125,18 @@ def table_broker(payload):
 
         header_line = []
         data = []
+        fieldnames = []
+        results = []
         results_string = ""
         with gzip.open(results_file_location, 'rb') as results_file:
             results = csv.DictReader(results_file)
+            fieldnames = results.fieldnames[:]
             data = sanitize_results(list(results))
 
-        markdown_separator = create_markdown_separator(data[0].keys())
+        fieldnames = sanitize_list(fieldnames)
+        markdown_separator = create_markdown_separator(fieldnames)
         with open('temp.csv', 'w+') as temp:
-            writer = csv.DictWriter(temp, fieldnames=data[0].keys(), dialect="markdown")
+            writer = csv.DictWriter(temp, fieldnames=fieldnames, dialect="markdown")
             writer.writeheader()
             writer.writerows(data)
         
@@ -155,7 +168,8 @@ def table_broker(payload):
             print >> sys.stderr, "DEBUG Search owner: %s" % owner
             app = payload.get('app')
             print >> sys.stderr, "DEBUG Search app context: %s" % app
-            count = len(data)
+            # delete 2 because of header and separator
+            count = len(data) - 2
             print >> sys.stderr, "DEBUG Search result count: %s" % count
             description = payload.get('description')
             print >> sys.stderr, "DEBUG Search description: %s" % description
