@@ -30,7 +30,7 @@ def sanitize_results(data):
 
 def sanitize_list(field_list):
     for item in field_list[:]:
-        if '__mv_' in item or item == 'mvtime' or v == '_tc':
+        if '__mv_' in item or item == 'mvtime' or item == '_tc':
             field_list.remove(item)
     return field_list
 
