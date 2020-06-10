@@ -80,7 +80,7 @@ def create_attachment_dict(fallback, pretext, text, title, author_name, **kwargs
     
 def send_notification(msg, url, attachment=None):
     print >> sys.stderr, "INFO Sending message to Mattermost url %s" % (url)
-    msg_limit = 10000
+    msg_limit = 4000
     if len(msg) > msg_limit:
         print >> sys.stderr, "WARN Message is longer than limit of %d characters and will be truncated" % msg_limit
         msg = msg[0:msg_limit - 3] + '...'
