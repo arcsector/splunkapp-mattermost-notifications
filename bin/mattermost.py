@@ -101,10 +101,10 @@ def send_notification(msg, url, attachment=None):
         body = json.dumps(data)
         send_log(sys.stderr, 'DEBUG Adding attachment to body with body=%s' % (body))
     
-    req = Request(url, body, {"Content-Type": "application/json"})
+    req = Request(url, body.encode('utf-8'), {"Content-Type": "application/json"})
     try:
         res = urlopen(req)
-        body = res.read()
+        body = res.read().decode('utf-8')
         send_log(sys.stderr, "INFO Mattermost server responded with HTTP status=%d" % res.code)
         send_log(sys.stderr, "DEBUG Mattermost server response: %s" % json.dumps(body))
         return 200 <= res.code < 300
@@ -131,7 +131,7 @@ def table_broker(payload):
         fieldnames = []
         results = []
         results_string = ""
-        with gzip.open(results_file_location, 'rb') as results_file:
+        with gzip.open(results_file_location, 'rt') as results_file:
             results = csv.DictReader(results_file)
             fieldnames = results.fieldnames[:]
             data = sanitize_results(list(results))
