@@ -3,7 +3,6 @@ import json
 from six import urllib2
 import gzip
 import csv
-import datetime
 import os
 
 from fnmatch import fnmatch
