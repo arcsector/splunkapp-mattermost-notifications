@@ -1,6 +1,6 @@
 import sys
 import json
-import urllib2
+from six import urllib2
 import gzip
 import csv
 import datetime
@@ -105,7 +105,7 @@ def send_notification(msg, url, attachment=None):
         print >> sys.stderr, "INFO Mattermost server responded with HTTP status=%d" % res.code
         print >> sys.stderr, "DEBUG Mattermost server response: %s" % json.dumps(body)
         return 200 <= res.code < 300
-    except urllib2.HTTPError, e:
+    except urllib2.HTTPError as e:
         print >> sys.stderr, "ERROR Error sending message: %s (%s)" % (e, str(dir(e)))
         print >> sys.stderr, "ERROR Server response: %s" % e.read()
         return False
