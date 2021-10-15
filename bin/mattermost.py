@@ -1,6 +1,7 @@
 import sys
 import json
-import urllib
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 import gzip
 import csv
 import os
@@ -100,14 +101,14 @@ def send_notification(msg, url, attachment=None):
         body = json.dumps(data)
         send_log(sys.stderr, 'DEBUG Adding attachment to body with body=%s' % (body))
     
-    req = urllib.Request(url, body, {"Content-Type": "application/json"})
+    req = Request(url, body, {"Content-Type": "application/json"})
     try:
-        res = urllib.urlopen(req)
+        res = urlopen(req)
         body = res.read()
         send_log(sys.stderr, "INFO Mattermost server responded with HTTP status=%d" % res.code)
         send_log(sys.stderr, "DEBUG Mattermost server response: %s" % json.dumps(body))
         return 200 <= res.code < 300
-    except urllib.HTTPError as e:
+    except HTTPError as e:
         send_log(sys.stderr, "ERROR Error sending message: %s (%s)" % (e, str(dir(e))))
         send_log(sys.stderr, "ERROR Server response: %s" % e.read())
         return False
