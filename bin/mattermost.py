@@ -1,6 +1,6 @@
 import sys
 import json
-from six import urllib2
+import urllib
 import gzip
 import csv
 import os
@@ -9,6 +9,9 @@ from fnmatch import fnmatch
 
 # Create Markdown dialect for ligning up csv
 csv.register_dialect("markdown", delimiter='|', escapechar='\\', quoting=csv.QUOTE_NONE, lineterminator='\n')
+
+def send_log(output_file, message):
+    print(message, file=output_file)
 
 def delete_key(key, dic):
     if key in dic:
@@ -45,7 +48,7 @@ def create_markdown_separator(value_list):
     for value in value_list:
         markdown_string += '-|'
     #markdown_string += '\n'
-    print >> sys.stderr, "DEBUG Markdown header length is %s" % str(value_list)
+    send_log(sys.stderr, "DEBUG Markdown header length is %s" % str(value_list))
     return markdown_string
 
 def create_mm_field(title, value, short=None):
@@ -68,9 +71,9 @@ def create_attachment_dict(fallback, pretext, text, title, author_name, **kwargs
     field_list = []
 
     for (param, value) in kwargs.items():
-        print >> sys.stderr, "DEBUG Filtering arg %s" % param
+        send_log(sys.stderr, "DEBUG Filtering arg %s" % param)
         if '_field' in param:
-            print >> sys.stderr, "DEBUG Adding arg %s to field list" % param
+            send_log(sys.stderr, "DEBUG Adding arg %s to field list" % param)
             field_list.append(value)
 
     attachment_dict['fields'] = field_list
@@ -78,10 +81,10 @@ def create_attachment_dict(fallback, pretext, text, title, author_name, **kwargs
     return attachment_dict
     
 def send_notification(msg, url, attachment=None):
-    print >> sys.stderr, "INFO Sending message to Mattermost url %s" % (url)
+    send_log(sys.stderr, "INFO Sending message to Mattermost url %s" % (url))
     msg_limit = 4000
     if len(msg) > msg_limit:
-        print >> sys.stderr, "WARN Message is longer than limit of %d characters and will be truncated" % msg_limit
+        send_log(sys.stderr, "WARN Message is longer than limit of %d characters and will be truncated" % msg_limit)
         msg = msg[0:msg_limit - 3] + '...'
     data = dict(
         text=msg,
@@ -90,37 +93,37 @@ def send_notification(msg, url, attachment=None):
     )
 
     body = json.dumps(data)
-    print >> sys.stderr, 'DEBUG Calling url="%s" with body=%s' % (url, body)
+    send_log(sys.stderr, 'DEBUG Calling url="%s" with body=%s' % (url, body))
 
     if attachment:
         data['attachments'] = [attachment]
         body = json.dumps(data)
-        print >> sys.stderr, 'DEBUG Adding attachment to body with body=%s' % (body)
+        send_log(sys.stderr, 'DEBUG Adding attachment to body with body=%s' % (body))
     
-    req = urllib2.Request(url, body, {"Content-Type": "application/json"})
+    req = urllib.Request(url, body, {"Content-Type": "application/json"})
     try:
-        res = urllib2.urlopen(req)
+        res = urllib.urlopen(req)
         body = res.read()
-        print >> sys.stderr, "INFO Mattermost server responded with HTTP status=%d" % res.code
-        print >> sys.stderr, "DEBUG Mattermost server response: %s" % json.dumps(body)
+        send_log(sys.stderr, "INFO Mattermost server responded with HTTP status=%d" % res.code)
+        send_log(sys.stderr, "DEBUG Mattermost server response: %s" % json.dumps(body))
         return 200 <= res.code < 300
-    except urllib2.HTTPError as e:
-        print >> sys.stderr, "ERROR Error sending message: %s (%s)" % (e, str(dir(e)))
-        print >> sys.stderr, "ERROR Server response: %s" % e.read()
+    except urllib.HTTPError as e:
+        send_log(sys.stderr, "ERROR Error sending message: %s (%s)" % (e, str(dir(e))))
+        send_log(sys.stderr, "ERROR Server response: %s" % e.read())
         return False
 
 def table_broker(payload):
-    print >> sys.stderr, "DEBUG Sending message with payload %s" % payload
+    send_log(sys.stderr, "DEBUG Sending message with payload %s" % payload)
     settings = payload.get('configuration')
-    print >> sys.stderr, "DEBUG Sending message with settings %s" % settings
+    send_log(sys.stderr, "DEBUG Sending message with settings %s" % settings)
     table = settings.get('table')
     msg = settings.get('message')
     url = settings.get('url')
     return_value = False
     if table:
-        print >> sys.stderr, "DEBUG Results found"
+        send_log(sys.stderr, "DEBUG Results found")
         results_file_location = payload.get('results_file')
-        print >> sys.stderr, "INFO Results at %s" % results_file_location
+        send_log(sys.stderr, "INFO Results at %s" % results_file_location)
 
         header_line = []
         data = []
@@ -146,35 +149,35 @@ def table_broker(payload):
         if os.path.isfile('temp.csv'):
             os.remove('temp.csv')
 
-        print >> sys.stderr, "INFO Results markdown string: %s" % results_string
+        send_log(sys.stderr, "INFO Results markdown string: %s" % results_string)
         # Decide whether to send this info via table or attachment
         if table == "table":
             return_value = send_notification(msg, url)
-            print >> sys.stderr, "INFO Results table selected"
+            send_log(sys.stderr, "INFO Results table selected")
 
             table_return_value = send_notification(results_string, url)
             if not table_return_value:
-                print >> sys.stderr, "FATAL Failed trying to send Mattermost table"
+                send_log(sys.stderr, "FATAL Failed trying to send Mattermost table")
                 sys.exit(2)
             else:
-                print >> sys.stderr, "INFO Mattermost table successfully sent"
+                send_log(sys.stderr, "INFO Mattermost table successfully sent")
 
         elif table == "attach":
-            print >> sys.stderr, "INFO Results attachment selected"
+            send_log(sys.stderr, "INFO Results attachment selected")
             saved_search_name = payload.get('search_name')
-            print >> sys.stderr, "DEBUG Saved search name: %s" % saved_search_name
+            send_log(sys.stderr, "DEBUG Saved search name: %s" % saved_search_name)
             results_link = payload.get('results_link')
-            print >> sys.stderr, "DEBUG Results link: %s" % results_link
+            send_log(sys.stderr, "DEBUG Results link: %s" % results_link)
             owner = payload.get('owner')
             author_name = owner
-            print >> sys.stderr, "DEBUG Search owner: %s" % owner
+            send_log(sys.stderr, "DEBUG Search owner: %s" % owner)
             app = payload.get('app')
-            print >> sys.stderr, "DEBUG Search app context: %s" % app
+            send_log(sys.stderr, "DEBUG Search app context: %s" % app)
             # delete 2 because of header and separator
             count = len(data) - 2
-            print >> sys.stderr, "DEBUG Search result count: %s" % count
+            send_log(sys.stderr, "DEBUG Search result count: %s" % count)
             description = payload.get('description')
-            print >> sys.stderr, "DEBUG Search description: %s" % description
+            send_log(sys.stderr, "DEBUG Search description: %s" % description)
 
             fallback = "Results generated by alert \"%s\"" % saved_search_name
             pretext = "Results in markdown table format. Search results in Splunk can be found [here](%s)." % results_link
@@ -188,7 +191,7 @@ def table_broker(payload):
             results_field = create_mm_field("Results Link", results_link, short=False)
             #date_field = create_mm_field("Date Alerted", trigger_epoch_string, short=True)
             
-            print >> sys.stderr, "DEBUG Creating attachment dictionary"
+            send_log(sys.stderr, "DEBUG Creating attachment dictionary")
             attachment_dict = create_attachment_dict(
                 fallback,
                 pretext,
@@ -206,11 +209,11 @@ def table_broker(payload):
             
             return_value = send_notification(msg, url, attachment_dict)
         else:
-            print >> sys.stderr, "INFO Results table request had unexpected value %s" % table
+            send_log(sys.stderr, "INFO Results table request had unexpected value %s" % table)
             return_value = send_notification(msg, url)
 
     else:
-        print >> sys.stderr, "INFO Results table request not found"
+        send_log(sys.stderr, "INFO Results table request not found")
         return_value = send_notification(msg, url)
     return return_value
 
@@ -219,10 +222,10 @@ if __name__ == "__main__":
         payload = json.loads(sys.stdin.read())
         success = table_broker(payload)
         if not success:
-            print >> sys.stderr, "FATAL Failed trying to send Mattermost notification"
+            send_log(sys.stderr, "FATAL Failed trying to send Mattermost notification")
             sys.exit(2)
         else:
-            print >> sys.stderr, "INFO Mattermost notification successfully sent"
+            send_log(sys.stderr, "INFO Mattermost notification successfully sent")
     else:
-        print >> sys.stderr, "FATAL Unsupported execution mode (expected --execute flag)"
+        send_log(sys.stderr, "FATAL Unsupported execution mode (expected --execute flag)")
         sys.exit(1)
