@@ -1,12 +1,11 @@
 import sys
 import json
 from urllib.request import Request, urlopen
+from ssl import create_default_context 
 from urllib.error import HTTPError
 import gzip
 import csv
-import os
-
-from fnmatch import fnmatch
+from io import StringIO
 
 # Create Markdown dialect for ligning up csv
 csv.register_dialect("markdown", delimiter='|', escapechar='\\', quoting=csv.QUOTE_NONE, lineterminator='\n')
@@ -46,7 +45,7 @@ def create_markdown_string(str_list, separator):
 
 def create_markdown_separator(value_list):
     markdown_string = "|"
-    for value in value_list:
+    for _ in value_list:
         markdown_string += '-|'
     #markdown_string += '\n'
     send_log(sys.stderr, "DEBUG Markdown header length is %s" % str(value_list))
@@ -126,7 +125,6 @@ def table_broker(payload):
         results_file_location = payload.get('results_file')
         send_log(sys.stderr, "INFO Results at %s" % results_file_location)
 
-        header_line = []
         data = []
         fieldnames = []
         results = []
@@ -138,17 +136,13 @@ def table_broker(payload):
 
         fieldnames = sanitize_list(fieldnames)
         markdown_separator = create_markdown_separator(fieldnames)
-        with open('temp.csv', 'w+') as temp:
-            writer = csv.DictWriter(temp, fieldnames=fieldnames, dialect="markdown")
-            writer.writeheader()
-            writer.writerows(data)
-        
-        with open('temp.csv', 'r') as temp:
-            data = temp.read().split('\n')
-            results_string = create_markdown_string(data, markdown_separator)
+        temp = StringIO()
+        writer = csv.DictWriter(temp, fieldnames=fieldnames, dialect="markdown")
+        writer.writeheader()
+        writer.writerows(data)
 
-        if os.path.isfile('temp.csv'):
-            os.remove('temp.csv')
+        data = temp.read().split('\n')
+        results_string = create_markdown_string(data, markdown_separator)
 
         send_log(sys.stderr, "INFO Results markdown string: %s" % results_string)
         # Decide whether to send this info via table or attachment
@@ -220,8 +214,8 @@ def table_broker(payload):
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--execute":
-        payload = json.loads(sys.stdin.read())
-        success = table_broker(payload)
+        results_payload = json.loads(sys.stdin.read())
+        success = table_broker(results_payload)
         if not success:
             send_log(sys.stderr, "FATAL Failed trying to send Mattermost notification")
             sys.exit(2)
