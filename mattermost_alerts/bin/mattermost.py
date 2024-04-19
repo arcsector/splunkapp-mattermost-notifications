@@ -1,7 +1,6 @@
 import sys
 import json
 from urllib.request import Request, urlopen
-from ssl import create_default_context 
 from urllib.error import HTTPError
 import gzip
 import csv
@@ -96,7 +95,7 @@ def send_notification(msg, url, attachment=None):
     send_log(sys.stderr, 'DEBUG Calling url="%s" with body=%s' % (url, body))
 
     if attachment:
-        data['attachments'] = [attachment]
+        data['attachments'] = [attachment] # type: ignore
         body = json.dumps(data)
         send_log(sys.stderr, 'DEBUG Adding attachment to body with body=%s' % (body))
     
@@ -130,8 +129,8 @@ def table_broker(payload):
         results = []
         results_string = ""
         with gzip.open(results_file_location, 'rt') as results_file:
-            results = csv.DictReader(results_file)
-            fieldnames = results.fieldnames[:]
+            results = csv.DictReader(results_file) # type: ignore
+            fieldnames = results.fieldnames[:] # type: ignore
             data = sanitize_results(list(results))
 
         fieldnames = sanitize_list(fieldnames)
