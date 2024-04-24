@@ -1,4 +1,5 @@
 #!/bin/bash
 
-VERSION=$(grep version ./mattermost_alerts/default/app.conf | head -1 | sed 's/version = //' | sed 's/\n//')
-tar -czvf "mattermost_alerts_${VERSION//./}.tgz" mattermost_alerts/
+APP_DIR=mattermost_alert_action
+VERSION=$(grep version "./$APP_DIR/default/app.conf" | head -1 | sed 's/version = //' | sed 's/\n//')
+tar -czvf "${APP_DIR}_${VERSION//./}.tgz" "$APP_DIR/"
