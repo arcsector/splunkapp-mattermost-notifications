@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "2.0.0",
+  "info": {
+    "title": "Mattermost Alert Action",
+    "id": {
+      "group": "TriplePlay",
+      "name": "mattermost_alert_action",
+      "version": "1.1.2"
+    },
+    "author": [
+      {
+        "name": "haraksin",
+        "email": "splunk.o6h60@slmail.me",
+        "company": "TriplePlay"
+      }
+    ],
+    "releaseDate": "2024-05-01",
+    "description": "Send a customized message to a Mattermost room based on a triggered alert action in Splunk",
+    "classification": {
+      "intendedAudience": "IT Operations",
+      "categories": ["DevOps", "IT Operations", "Monitoring"],
+      "developmentStatus": "Production/Stable"
+    },
+    "commonInformationModels": null,
+    "license": {
+      "name": "MIT License",
+      "text": "LICENSE",
+      "uri": "https://choosealicense.com/licenses/mit/"
+    },
+    "privacyPolicy": {
+      "name": null,
+      "text": null,
+      "uri": null
+    },
+    "releaseNotes": {
+      "name": null,
+      "text": "./README.md",
+      "uri": null
+    }
+  },
+  "dependencies": null,
+  "tasks": null,
+  "inputGroups": null,
+  "incompatibleApps": {
+    "mattermost_alerts": "*"
+  },
+  "platformRequirements": {
+    "splunk": {
+      "Enterprise": "*"
+    }
+  },
+  "supportedDeployments": ["*"],
+  "targetWorkloads": ["_search_heads"]
+}

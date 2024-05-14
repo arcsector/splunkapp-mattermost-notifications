@@ -3,3 +3,4 @@ inspect.yml
 results.json
 git_rename.sh
 *.tgz
+*.tar.gz
