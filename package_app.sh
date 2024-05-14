@@ -1,8 +1,40 @@
 #!/bin/bash
 
+logphrase() {
+    echo "$APP_DIR Package: $1"
+}
+
+chmodRecurse() {
+    logphrase "Recursing into $1..."
+    for item in "$1"/*; do
+        if test "$item" != "$APP_DIR/bin"; then 
+            if test -d "$item"; then
+                chmodRecurse "$item"
+            else
+                /usr/bin/chmod 660 "$item"
+            fi
+        fi
+    done
+}
+
+CURRENT_DIR=$(pwd)
 APP_DIR=mattermost_alert_action
+BUILD_DIR=/home/haraksin/.splunk-build
 if ! slim validate $APP_DIR; then
-  echo "App Validation Failed" > /dev/stderr
-  exit 1
+    echo "$APP_DIR Package - App Validation Failed" > /dev/stderr
+    exit 1
 fi
-slim package $APP_DIR
+if [ ! -d "$BUILD_DIR" ]; then
+    logphrase "Creating Build Directory at '$BUILD_DIR'"
+    mkdir "$BUILD_DIR"
+fi
+if test -d "$BUILD_DIR/$APP_DIR"; then
+    logphrase "Removing existing content in Build Directory"
+    rm -rf "${BUILD_DIR:?}/$APP_DIR"
+fi
+cp -r $APP_DIR "$BUILD_DIR/"
+cd "$BUILD_DIR" || exit 1
+logphrase "Changing permissions to 660 for non-bin dirs"
+chmodRecurse "$APP_DIR"
+
+slim package $APP_DIR -o "$CURRENT_DIR"
