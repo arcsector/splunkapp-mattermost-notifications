@@ -1,6 +1,6 @@
 #!/bin/bash
 
-APP_DIR=TriplePlay-mattermost_alert_action
+APP_DIR=mattermost_alert_action
 if ! slim validate $APP_DIR; then
   echo "App Validation Failed" > /dev/stderr
   exit 1
