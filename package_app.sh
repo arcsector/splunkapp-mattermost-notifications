@@ -1,11 +1,13 @@
 #!/bin/bash
 
 logphrase() {
-    echo "$APP_DIR Package: $1"
+    BLUE='\033[0;34m' 
+    NC='\033[0m'
+    echo -e "${BLUE}$APP_DIR${NC}: $1"
 }
 
 chmodRecurse() {
-    logphrase "Recursing into $1..."
+    #logphrase "Recursing into $1..."
     for item in "$1"/*; do
         if test "$item" != "$APP_DIR/bin"; then 
             if test -d "$item"; then
