@@ -6,19 +6,6 @@ logphrase() {
     echo -e "${BLUE}$APP_DIR${NC}: $1"
 }
 
-chmodRecurse() {
-    #logphrase "Recursing into $1..."
-    for item in "$1"/*; do
-        if test "$item" != "$APP_DIR/bin"; then 
-            if test -d "$item"; then
-                chmodRecurse "$item"
-            else
-                /usr/bin/chmod 660 "$item"
-            fi
-        fi
-    done
-}
-
 CURRENT_DIR=$(pwd)
 APP_DIR=mattermost_alert_action
 BUILD_DIR=/home/haraksin/.splunk-build
@@ -37,7 +24,7 @@ fi
 cp -r $APP_DIR "$BUILD_DIR/"
 cd "$BUILD_DIR" || exit 1
 logphrase "Changing permissions to 660 for non-bin dirs"
-chmodRecurse "$APP_DIR"
+chmod -R u-x,u+rX,go-rwX "$APP_DIR"
 splunk-appinspect inspect $APP_DIR/ --generate-feedback --excluded-tags manual --ci --output-file results.json > /dev/null
 AppInspectResult=$?
 if test $AppInspectResult -eq 101; then
